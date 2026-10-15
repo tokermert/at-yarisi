@@ -70,9 +70,9 @@ export const PLAYER_THEMES: PlayerTheme[] = [
 ];
 
 export const TRACK_LENGTHS = [
-  { label: "Kısa", steps: 10 },
-  { label: "Normal", steps: 15 },
-  { label: "Uzun", steps: 22 },
+  { label: "Kısa", steps: 8 },
+  { label: "Normal", steps: 12 },
+  { label: "Uzun", steps: 18 },
 ] as const;
 
 /** Atış masası yerel koordinat sistemi (birim). */

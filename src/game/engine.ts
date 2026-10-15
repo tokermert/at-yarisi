@@ -1,5 +1,5 @@
 import { Sfx } from "./audio";
-import { BALL_R, HAND_X, HAND_Y, PLAYER_THEMES, RAMP_H, WALL_TOP, type PlayerTheme } from "./config";
+import { BALL_R, HAND_X, HAND_Y, PLAYER_THEMES, RAMP_H } from "./config";
 import {
   drawBall,
   drawHorse,
@@ -92,13 +92,11 @@ export class GameView {
   private ballRound = -1;
   private drag: { id: number; sx: number; sy: number; cx: number; cy: number } | null = null;
   private keyHeld: number | null = null;
-  private lastPower: number | null = null;
   private thrown = 0;
 
   private track: TrackGeom | null = null;
   private ramp: RampGeom | null = null;
   private panel: { x: number; y: number; w: number; h: number } | null = null;
-  private bar: { x: number; y: number; w: number; h: number } | null = null;
 
   constructor(canvas: HTMLCanvasElement, hooks: ViewHooks) {
     this.canvas = canvas;
@@ -203,7 +201,7 @@ export class GameView {
     if (!w || !h) return;
     const lanes = this.lanes();
     const laneCount = Math.max(1, lanes.length);
-    const steps = this.state?.steps ?? 15;
+    const steps = this.state?.steps ?? 12;
     const key = `${w}x${h}|${laneCount}|${steps}|${this.mySlot}`;
     if (key === this.bgKey) return;
     this.bgKey = key;
@@ -217,7 +215,6 @@ export class GameView {
       this.track = fitTrack(w);
       this.panel = null;
       this.ramp = null;
-      this.bar = null;
     } else if (w > h * 1.05) {
       const pw = Math.round(Math.min(w * 0.42, h * 0.72));
       this.track = fitTrack(w - pw);
@@ -230,25 +227,7 @@ export class GameView {
 
     if (this.panel) {
       const p = this.panel;
-      const barW = Math.round(Math.max(30, Math.min(48, p.w * 0.11)));
-      const gap = 14;
-      this.ramp = rampGeom(p.x, p.y, p.w - barW - gap * 2, p.h);
-      // Masayı ve çubuğu birlikte ortala.
-      const s = this.ramp.scale;
-      const frame = 100 * 0.08 * s;
-      const groupW = 100 * s + frame * 2 + gap + barW;
-      const left = p.x + (p.w - groupW) / 2;
-      const shift = left + frame - this.ramp.ox;
-      this.ramp.ox += shift;
-      this.ramp.colX = p.x;
-      this.ramp.colW = p.w;
-      const barTop = this.ramp.oy + (WALL_TOP + 4) * s;
-      this.bar = {
-        x: this.ramp.ox + 100 * s + frame + gap,
-        y: barTop,
-        w: barW,
-        h: this.ramp.oy + (RAMP_H - 4) * s - barTop,
-      };
+      this.ramp = rampGeom(p.x, p.y, p.w, p.h);
     }
     this.paintBackground(steps);
   }
@@ -396,9 +375,11 @@ export class GameView {
 
   private fire(aim: Aim) {
     if (this.state?.phase !== "racing" || this.mySlot === null) return;
-    const speed = MIN_THROW + aim.power * THROW_RANGE;
-    if (throwBall(this.ball, Math.sin(aim.angle) * speed, -Math.cos(aim.angle) * speed)) {
-      this.lastPower = aim.power;
+    // El hiçbir zaman tam aynı atmaz: hıza ve yöne ufak bir sapma eklenir.
+    const jitter = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+    const speed = (MIN_THROW + aim.power * THROW_RANGE) * (1 + jitter() * 0.03);
+    const angle = aim.angle + jitter() * 0.035;
+    if (throwBall(this.ball, Math.sin(angle) * speed, -Math.cos(angle) * speed)) {
       this.thrown++;
       this.sfx.roll();
       this.hooks.onThrow();
@@ -572,7 +553,7 @@ export class GameView {
   private renderTrack(g: TrackGeom) {
     const { ctx } = this;
     const lanes = this.lanes();
-    const steps = this.state?.steps ?? 15;
+    const steps = this.state?.steps ?? 12;
     const size = Math.min(g.laneH * 0.98, (g.finishX - g.startX) / 4);
     const span = g.finishX - g.startX;
 
@@ -697,7 +678,7 @@ export class GameView {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(String(this.mySlot + 1), hx + hh / 2, hy + hh / 2 + 1);
-    const progress = me ? `${me.pos}/${this.state?.steps ?? 15}` : "";
+    const progress = me ? `${me.pos}/${this.state?.steps ?? 12}` : "";
     ctx.font = `800 ${Math.round(hh * 0.42)}px system-ui, sans-serif`;
     const pw = ctx.measureText(progress).width;
     ctx.textAlign = "right";
@@ -737,85 +718,6 @@ export class GameView {
       drawBall(ctx, hx2, hy2, r, theme);
     }
 
-    this.renderPowerBar(aim, theme);
-  }
-
-  private renderPowerBar(aim: Aim | null, theme: PlayerTheme) {
-    const b = this.bar;
-    if (!b) return;
-    const { ctx } = this;
-    const power = aim?.power ?? 0;
-    const pad = 4;
-    const innerX = b.x + pad;
-    const innerW = b.w - pad * 2;
-    const innerY = b.y + pad;
-    const innerH = b.h - pad * 2;
-
-    // Çerçeve
-    ctx.fillStyle = "#5c3a1a";
-    roundRect(ctx, b.x, b.y, b.w, b.h, b.w / 2);
-    ctx.fill();
-    ctx.fillStyle = "#1e1b18";
-    roundRect(ctx, innerX, innerY, innerW, innerH, innerW / 2);
-    ctx.fill();
-
-    // Dolum: yeşilden kırmızıya
-    if (power > 0) {
-      const fillH = innerH * power;
-      ctx.save();
-      roundRect(ctx, innerX, innerY, innerW, innerH, innerW / 2);
-      ctx.clip();
-      const grad = ctx.createLinearGradient(0, innerY + innerH, 0, innerY);
-      grad.addColorStop(0, "#22c55e");
-      grad.addColorStop(0.5, "#facc15");
-      grad.addColorStop(1, "#ef4444");
-      ctx.fillStyle = grad;
-      ctx.fillRect(innerX, innerY + innerH - fillH, innerW, fillH);
-      ctx.fillStyle = "rgba(255,255,255,0.25)";
-      ctx.fillRect(innerX + innerW * 0.18, innerY + innerH - fillH, innerW * 0.18, fillH);
-      ctx.restore();
-    }
-
-    // Çentikler
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.lineWidth = 1.5;
-    for (let i = 1; i < 10; i++) {
-      const y = innerY + innerH * (1 - i / 10);
-      const len = i % 5 === 0 ? innerW * 0.7 : innerW * 0.35;
-      ctx.beginPath();
-      ctx.moveTo(innerX, y);
-      ctx.lineTo(innerX + len, y);
-      ctx.stroke();
-    }
-
-    // Son atışın gücü
-    if (this.lastPower !== null) {
-      const y = innerY + innerH * (1 - this.lastPower);
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.moveTo(b.x - 2, y);
-      ctx.lineTo(b.x - 11, y - 6);
-      ctx.lineTo(b.x - 11, y + 6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = theme.silkDark;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.fillStyle = "rgba(255,255,255,0.9)";
-      ctx.fillRect(innerX, y - 1, innerW, 2);
-    }
-
-    // Etiketler
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    ctx.font = `800 ${Math.round(Math.min(13, b.w * 0.34))}px system-ui, sans-serif`;
-    ctx.fillText("GÜÇ", b.x + b.w / 2, b.y - 6);
-    ctx.textBaseline = "top";
-    const shown = aim ? power : this.lastPower;
-    ctx.font = `900 ${Math.round(Math.min(16, b.w * 0.4))}px system-ui, sans-serif`;
-    ctx.fillStyle = aim ? "#ffffff" : "rgba(255,255,255,0.6)";
-    ctx.fillText(shown === null ? "—" : `%${Math.round(shown * 100)}`, b.x + b.w / 2, b.y + b.h + 6);
   }
 
   private renderAim(hx: number, hy: number, aim: Aim, s: number) {

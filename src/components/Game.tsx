@@ -557,7 +557,7 @@ function closeSession(s: Session) {
 function demoSnapshot(): RaceSnapshot {
   return {
     phase: "lobby",
-    steps: 15,
+    steps: 12,
     slots: PLAYER_THEMES.map((t, i) => ({
       slot: i,
       name: t.label,
@@ -597,8 +597,8 @@ function HowTo() {
           Herkes ekranında tüm atları ve yalnızca <b>kendi atış masasını</b> görür. Sıra yok, herkes aynı anda atar.
         </li>
         <li>
-          Topu yukarı kaydır ya da sapan gibi aşağı çekip bırak. Sağdaki <b>güç çubuğu</b> atışın hızını gösterir;
-          beyaz ok son atışını hatırlatır.
+          Topu yukarı kaydır ya da sapan gibi aşağı çekip bırak. Toptan çıkan <b>ok</b> ne kadar uzun ve kırmızıysa
+          atış o kadar sert. Masa pürüzlü, top her zaman tam istediğin yere gitmez!
         </li>
         <li>
           Bilgisayarda <kbd>Boşluk</kbd> tuşunu basılı tut: ok sağa sola, güç aşağı yukarı gider. Doğru anda bırak!

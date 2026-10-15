@@ -59,7 +59,7 @@ interface Slot extends SlotView {
 export class RaceHost {
   private slots: (Slot | null)[] = Array(MAX_SLOTS).fill(null);
   private phase: RacePhase = "lobby";
-  private steps = 15;
+  private steps = 12;
   private countdownEnd = 0;
   private banner: Banner | null = null;
   private bannerId = 0;
@@ -203,7 +203,7 @@ export class RaceHost {
         if (s.ball.state === "hand") {
           s.botTimer -= STEP;
           if (s.botTimer <= 0) {
-            s.botTimer = 0.5 + Math.random() * 0.9;
+            s.botTimer = 0.3 + Math.random() * 0.6;
             const r = Math.random();
             const row = r < 0.3 ? 0 : r < 0.62 ? 1 : 2;
             const options = HOLES.filter((h) => h.row === row);

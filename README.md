@@ -1,14 +1,14 @@
 # At Yarışı 🏇
 
 Lunaparkların klasik at yarışı oyununun tarayıcı versiyonu. Herkes kendi telefonundan oynar:
-ekranda tüm atlar koşar, altta yalnızca **senin** atış masan ve güç çubuğun görünür.
+ekranda tüm atlar koşar, altta yalnızca **senin** atış masan görünür.
 
 ## Nasıl oynanır
 
 1. Biri **Oda kur** der; 4 harfli oda kodu ve QR çıkar.
 2. Diğerleri kodu yazar ya da QR'ı okutur (en fazla 4 at). Boş yerlere bot eklenebilir.
-3. Topu yukarı kaydır ya da sapan gibi aşağı çekip bırak. Sağdaki güç çubuğu atış hızını,
-   beyaz ok son atışını gösterir. Bilgisayarda **Boşluk** tuşunu basılı tutup bırak.
+3. Topu yukarı kaydır ya da sapan gibi aşağı çekip bırak. Toptan çıkan ok yönü ve gücü gösterir;
+   masa pürüzlü olduğu için aynı atış hep aynı deliğe gitmez. Bilgisayarda **Boşluk** tuşunu basılı tutup bırak.
 4. Sarı delik +1, mavi +2, kırmızı +3 adım. Bitişe ilk varan kazanır.
 
 Bir cihazı **pist ekranı** (TV / tablet) olarak da açabilirsin; o cihaz atış masası göstermez.

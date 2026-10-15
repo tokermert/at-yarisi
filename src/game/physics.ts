@@ -51,6 +51,7 @@ const RETURN_TIME = 0.55;
 const CAPTURE_DIST = HOLE_R * 0.5;
 const CAPTURE_SPEED = 72;
 const PULL = 950;
+const WOBBLE = 1500;
 
 export type StepEvent = { type: "score"; hole: Hole } | { type: "bounce"; strength: number } | { type: "back" };
 
@@ -81,6 +82,8 @@ export function stepBall(ball: Ball, dt: number, rand: () => number = Math.rando
 
   let event: StepEvent | null = null;
 
+  // Masadaki pürüzler: top yuvarlanırken hafifçe sağa sola sapar, aynı atış hep aynı yere gitmez.
+  ball.vx += (rand() - 0.5) * WOBBLE * dt;
   ball.vy += GRAVITY * dt;
   const damp = 1 - FRICTION * dt;
   ball.vx *= damp;
