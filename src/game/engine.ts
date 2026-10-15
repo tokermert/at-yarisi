@@ -97,6 +97,8 @@ export class GameView {
   private track: TrackGeom | null = null;
   private ramp: RampGeom | null = null;
   private panel: { x: number; y: number; w: number; h: number } | null = null;
+  private side: { x: number; y: number; w: number; h: number } | null = null;
+  private finger: { x: number; y: number; w: number; h: number } | null = null;
 
   constructor(canvas: HTMLCanvasElement, hooks: ViewHooks) {
     this.canvas = canvas;
@@ -220,14 +222,30 @@ export class GameView {
       this.track = fitTrack(w - pw);
       this.panel = { x: w - pw, y: 0, w: pw, h };
     } else {
-      const th = Math.round(Math.max(190, h * 0.37));
+      const th = Math.round(Math.max(160, h * 0.3));
       this.track = trackGeom(0, 0, w, th, laneCount);
       this.panel = { x: 0, y: th, w, h: h - th };
     }
 
+    this.side = null;
+    this.finger = null;
     if (this.panel) {
       const p = this.panel;
-      this.ramp = rampGeom(p.x, p.y, p.w, p.h);
+      // Dikey ekranda masanın altında parmağın rahat hareket edeceği boş bir alan bırakılır.
+      const fingerH = p.y > 0 ? Math.round(Math.max(70, p.h * 0.17)) : 0;
+      const sideW = Math.round(Math.max(34, Math.min(46, p.w * 0.1)));
+      const gap = 10;
+      this.ramp = rampGeom(p.x + sideW + gap, p.y, p.w - (sideW + gap) * 2, p.h - fingerH, 6);
+      const g = this.ramp;
+      const fw = 100 * 0.08 * g.scale;
+      // İsim şeridi masanın soluna, dikey olarak yerleşir.
+      this.side = {
+        x: g.ox - fw - gap - sideW,
+        y: g.oy - fw,
+        w: sideW,
+        h: RAMP_H * g.scale + fw * 2.4,
+      };
+      if (fingerH) this.finger = { x: p.x, y: p.y + p.h - fingerH, w: p.w, h: fingerH };
     }
     this.paintBackground(steps);
   }
@@ -275,16 +293,15 @@ export class GameView {
     if (this.ramp && this.mySlot !== null) {
       const theme = PLAYER_THEMES[this.mySlot];
       const g = this.ramp;
-      const hh = g.headerH - 6;
-      const hw = Math.min(g.colW - 24, 320);
-      const hx = g.colX + (g.colW - hw) / 2;
-      const hy = g.colY + 10;
-      ctx.fillStyle = theme.silkDark;
-      roundRect(ctx, hx, hy + 2, hw, hh, hh / 2);
-      ctx.fill();
-      ctx.fillStyle = theme.silk;
-      roundRect(ctx, hx, hy, hw, hh, hh / 2);
-      ctx.fill();
+      if (this.side) {
+        const b = this.side;
+        ctx.fillStyle = theme.silkDark;
+        roundRect(ctx, b.x + 2, b.y, b.w, b.h, b.w / 2);
+        ctx.fill();
+        ctx.fillStyle = theme.silk;
+        roundRect(ctx, b.x, b.y, b.w, b.h, b.w / 2);
+        ctx.fill();
+      }
       paintRamp(ctx, g, theme, this.mySlot);
     }
   }
@@ -377,8 +394,8 @@ export class GameView {
     if (this.state?.phase !== "racing" || this.mySlot === null) return;
     // El hiçbir zaman tam aynı atmaz: hıza ve yöne ufak bir sapma eklenir.
     const jitter = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
-    const speed = (MIN_THROW + aim.power * THROW_RANGE) * (1 + jitter() * 0.03);
-    const angle = aim.angle + jitter() * 0.035;
+    const speed = (MIN_THROW + aim.power * THROW_RANGE) * (1 + jitter() * 0.015);
+    const angle = aim.angle + jitter() * ((1.5 * Math.PI) / 180);
     if (throwBall(this.ball, Math.sin(angle) * speed, -Math.cos(angle) * speed)) {
       this.thrown++;
       this.sfx.roll();
@@ -664,28 +681,44 @@ export class GameView {
     const me = this.state?.slots[this.mySlot];
     const s = g.scale;
 
-    // Başlık: isim ve ilerleme
-    const hh = g.headerH - 6;
-    const hw = Math.min(g.colW - 24, 320);
-    const hx = g.colX + (g.colW - hw) / 2;
-    const hy = g.colY + 10;
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(hx + hh / 2, hy + hh / 2, hh / 2 - 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = theme.silkDark;
-    ctx.font = `900 ${Math.round(hh * 0.55)}px system-ui, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(String(this.mySlot + 1), hx + hh / 2, hy + hh / 2 + 1);
-    const progress = me ? `${me.pos}/${this.state?.steps ?? 12}` : "";
-    ctx.font = `800 ${Math.round(hh * 0.42)}px system-ui, sans-serif`;
-    const pw = ctx.measureText(progress).width;
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(progress, hx + hw - hh * 0.5, hy + hh / 2 + 1);
-    ctx.textAlign = "left";
-    ctx.fillText(fitText(ctx, me?.name ?? theme.label, hw - hh * 1.6 - pw - 10), hx + hh + 6, hy + hh / 2 + 1);
+    // İsim şeridi: altta numara, üstte ilerleme, arada dikey isim
+    const side = this.side;
+    if (side) {
+      const cx = side.x + side.w / 2;
+      const r = side.w / 2 - 4;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(cx, side.y + side.h - side.w / 2, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = theme.silkDark;
+      ctx.font = `900 ${Math.round(r * 1.15)}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(this.mySlot + 1), cx, side.y + side.h - side.w / 2 + 1);
+
+      const progress = me ? `${me.pos}/${this.state?.steps ?? 12}` : "";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `900 ${Math.round(Math.min(14, side.w * 0.32))}px system-ui, sans-serif`;
+      ctx.fillText(progress, cx, side.y + side.w * 0.55);
+
+      const top = side.y + side.w * 1.05;
+      const bottom = side.y + side.h - side.w * 1.1;
+      ctx.save();
+      ctx.translate(cx, (top + bottom) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = `800 ${Math.round(Math.min(17, side.w * 0.42))}px system-ui, sans-serif`;
+      ctx.fillText(fitText(ctx, me?.name ?? theme.label, bottom - top), 0, 1);
+      ctx.restore();
+    }
+
+    if (this.finger && (this.state?.phase === "racing" || this.state?.phase === "countdown") && !this.drag) {
+      const f = this.finger;
+      ctx.fillStyle = "rgba(255,255,255,0.45)";
+      ctx.font = `700 ${Math.round(Math.min(14, f.h * 0.18))}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("☝ Parmağını burada da kaydırabilirsin", f.x + f.w / 2, f.y + f.h * 0.5);
+    }
 
     // Top
     const r = BALL_R * s;

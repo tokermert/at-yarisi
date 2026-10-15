@@ -519,8 +519,8 @@ export interface RampGeom {
   headerH: number;
 }
 
-export function rampGeom(colX: number, colY: number, colW: number, colH: number): RampGeom {
-  const headerH = Math.max(26, Math.min(40, colH * 0.07));
+export function rampGeom(colX: number, colY: number, colW: number, colH: number, header?: number): RampGeom {
+  const headerH = header ?? Math.max(26, Math.min(40, colH * 0.07));
   const pad = Math.max(6, colW * 0.06);
   const frame = 0.08; // çerçeve kalınlığı, ölçeğe oranla
   const availW = colW - pad * 2;
