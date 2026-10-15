@@ -120,6 +120,6 @@ export const HOLES: Hole[] = HOLE_ROWS.flatMap((row, i) =>
 );
 
 /** Kazanan sesi süresi: bu süre boyunca konfeti yağar, sonra sonuç ekranı açılır. */
-export const CELEBRATION_SECONDS = 5;
+export const CELEBRATION_SECONDS = 6;
 /** Konfetinin sönmesi için ek süre. */
 export const CONFETTI_FADE_SECONDS = 0.8;
