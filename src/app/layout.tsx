@@ -18,9 +18,9 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "At Yarışı — Lunapark klasiği, herkes kendi telefonundan",
+  title: "At Yarışı — Panayır klasiği, herkes kendi telefonundan",
   description:
-    "Lunaparkların klasik at yarışı oyunu: topu deliğe yuvarla, atını koştur. Oda kur, arkadaşların kodla katılsın; 4 kişiye kadar aynı anda.",
+    "Panayırların klasik at yarışı oyunu: topu deliğe yuvarla, atını koştur. Oda kur, arkadaşların kodla katılsın; 4 kişiye kadar aynı anda.",
   applicationName: "At Yarışı",
 };
 

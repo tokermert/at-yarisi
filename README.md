@@ -1,6 +1,6 @@
 # At Yarışı 🏇
 
-Lunaparkların klasik at yarışı oyununun tarayıcı versiyonu. Herkes kendi telefonundan oynar:
+Panayırların klasik at yarışı oyununun tarayıcı versiyonu. Herkes kendi telefonundan oynar:
 ekranda tüm atlar koşar, altta yalnızca **senin** atış masan görünür.
 
 ## Nasıl oynanır

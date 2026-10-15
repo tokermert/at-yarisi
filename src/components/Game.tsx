@@ -576,7 +576,7 @@ function demoSnapshot(): RaceSnapshot {
 function Title() {
   return (
     <div className="text-center">
-      <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-amber-300">Lunapark klasiği</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-amber-300">Panayır klasiği</p>
       <h1 className="mt-1 font-serif text-4xl font-black italic drop-shadow sm:text-5xl" style={{ color: "#fff" }}>
         At Yarışı
       </h1>
