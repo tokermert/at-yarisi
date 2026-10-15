@@ -5,11 +5,12 @@ const MUSIC_VOLUME = 0.35;
 const MUSIC_DUCKED = 0.08;
 
 /**
- * Yarış anlatımı: 0–1,5 sn giriş bir kez çalar, sonra 1,5–58 sn arası yarış bitene
- * kadar döner. Dosyanın son 1,5 saniyesi girişle harmanlandığı için döngü dikişsizdir.
+ * Yarış anlatımı (kaynağın 0:02–1:00 arası): 0–8 sn giriş bir kez çalar, sonra kaynağın
+ * 0:10–1:00 kısmı yarış bitene kadar döner. Dosyanın son 1,5 saniyesi döngü başıyla
+ * (0:10–0:11,5) harmanlandığından döngü 9,5. saniyeden dikişsiz devam eder.
  */
 const COMMENTARY_SRC = "/sesler/anlatim.mp3";
-const COMMENTARY_LOOP_START = 1.5;
+const COMMENTARY_LOOP_START = 9.5;
 const COMMENTARY_LOOP_END = 58;
 const WINNER_SRC = "/sesler/kazanan.mp3";
 const VOICE_VOLUME = 0.9;
