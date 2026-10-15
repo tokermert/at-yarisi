@@ -44,3 +44,13 @@ Oyun anonim kullanım olaylarını (ziyaret, oda kurma, katılma, yarış başla
 4. Rakamlar için SQL Editor'de `supabase/istatistik.sql` içindeki sorguları çalıştır.
 
 Değişkenler tanımlı değilse oyun hiçbir veri göndermez.
+
+### İstatistik paneli (`/istatistik`)
+
+Şifreli bir dashboard: ziyaretçi, oynayan, oda, yarış sayıları, günlük grafik, cihaz ve yarış türü kırılımları.
+
+1. SQL Editor'de `supabase/dashboard.sql` dosyasını çalıştır (özet fonksiyonunu kurar).
+2. Vercel'e iki gizli değişken ekle (önek **yok**, "Sensitive" işaretle):
+   - `SUPABASE_SECRET_KEY`: Supabase'deki **secret / service_role** anahtarı
+   - `STATS_PASSWORD`: panel şifresi
+3. Redeploy et ve `https://<site>/istatistik` adresine git.
