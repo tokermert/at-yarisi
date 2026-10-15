@@ -48,3 +48,14 @@ from events
 where type = 'race_finished'
 group by 1
 order by 1;
+
+-- 5) Cihaz türü ve işletim sistemi: kaç farklı cihaz ziyaret etti, kaçı oynadı?
+select
+  data->>'device'                                                    as cihaz,
+  data->>'os'                                                        as isletim_sistemi,
+  count(distinct device_id) filter (where type = 'visit')            as ziyaret_eden,
+  count(distinct device_id) filter (where type = 'race_played')      as oynayan
+from events
+where data ? 'device'
+group by 1, 2
+order by 3 desc;
