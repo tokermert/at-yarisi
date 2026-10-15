@@ -561,7 +561,7 @@ function closeSession(s: Session) {
 function demoSnapshot(): RaceSnapshot {
   return {
     phase: "lobby",
-    steps: 12,
+    steps: 10,
     slots: PLAYER_THEMES.map((t, i) => ({
       slot: i,
       name: t.label,

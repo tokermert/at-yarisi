@@ -59,7 +59,7 @@ interface Slot extends SlotView {
 export class RaceHost {
   private slots: (Slot | null)[] = Array(MAX_SLOTS).fill(null);
   private phase: RacePhase = "lobby";
-  private steps = 12;
+  private steps = 10;
   private countdownEnd = 0;
   private banner: Banner | null = null;
   private bannerId = 0;

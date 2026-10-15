@@ -49,7 +49,7 @@ export function throwBall(ball: Ball, vx: number, vy: number): boolean {
 const SINK_TIME = 0.32;
 const RETURN_TIME = 0.55;
 const CAPTURE_DIST = HOLE_R * 0.5;
-const CAPTURE_SPEED = 85;
+const CAPTURE_SPEED = 72;
 const PULL = 950;
 const WOBBLE = 1100;
 

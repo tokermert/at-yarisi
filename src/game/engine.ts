@@ -221,7 +221,7 @@ export class GameView {
     if (!w || !h) return;
     const lanes = this.lanes();
     const laneCount = Math.max(1, lanes.length);
-    const steps = this.state?.steps ?? 12;
+    const steps = this.state?.steps ?? 10;
     const key = `${w}x${h}|${laneCount}|${steps}|${this.mySlot}`;
     if (key === this.bgKey) return;
     this.bgKey = key;
@@ -423,7 +423,7 @@ export class GameView {
     if (this.state?.phase !== "racing" || this.mySlot === null) return;
     // El hiçbir zaman tam aynı atmaz: hıza ve yöne ufak bir sapma eklenir.
     const jitter = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
-    const speed = (MIN_THROW + aim.power * THROW_RANGE) * (1 + jitter() * 0.015);
+    const speed = (MIN_THROW + aim.power * THROW_RANGE) * (1 + jitter() * 0.04);
     const angle = aim.angle + jitter() * ((1.5 * Math.PI) / 180);
     if (throwBall(this.ball, Math.sin(angle) * speed, -Math.cos(angle) * speed)) {
       this.thrown++;
@@ -617,7 +617,7 @@ export class GameView {
   private renderTrack(g: TrackGeom) {
     const { ctx } = this;
     const lanes = this.lanes();
-    const steps = this.state?.steps ?? 12;
+    const steps = this.state?.steps ?? 10;
     const size = Math.min(g.laneH * 0.98, (g.finishX - g.startX) / 4);
     const span = g.finishX - g.startX;
 
@@ -743,7 +743,7 @@ export class GameView {
       ctx.textBaseline = "middle";
       ctx.fillText(String(this.mySlot + 1), cx, side.y + side.h - side.w / 2 + 1);
 
-      const progress = me ? `${me.pos}/${this.state?.steps ?? 12}` : "";
+      const progress = me ? `${me.pos}/${this.state?.steps ?? 10}` : "";
       ctx.fillStyle = "#ffffff";
       ctx.font = `900 ${Math.round(Math.min(14, side.w * 0.32))}px system-ui, sans-serif`;
       ctx.fillText(progress, cx, side.y + side.w * 0.55);
