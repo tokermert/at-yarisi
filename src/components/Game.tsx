@@ -380,6 +380,14 @@ export default function Game() {
           {error && <p className="mt-3 text-center text-sm font-semibold text-rose-300">{error}</p>}
           <HowTo />
           <AboutBoldPilot />
+          <a
+            href="https://www.linkedin.com/in/mert-toker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 block text-center text-xs font-semibold text-white/45 transition-colors hover:text-amber-300"
+          >
+            crafted by Toker
+          </a>
         </Overlay>
       )}
 
