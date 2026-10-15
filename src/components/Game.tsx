@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { CELEBRATION_SECONDS, CONFETTI_FADE_SECONDS, PLAYER_THEMES, TRACK_LENGTHS } from "@/game/config";
 import { track } from "@/game/analytics";
 import { GameView } from "@/game/engine";
+import { renderResultCard, shareResultCard } from "@/game/shareCard";
 import { hostRoom, joinRoom, normalizeCode, type ClientLink, type HostLink } from "@/game/net";
 import { MAX_SLOTS, RaceHost, ranking, type ClientMsg, type HostMsg, type RaceSnapshot } from "@/game/race";
 
@@ -96,6 +97,32 @@ export default function Game() {
   useEffect(() => {
     track("visit");
   }, []);
+
+  // Odadayken ekran kararmasın: telefon kilitlenirse bağlantı kopar.
+  useEffect(() => {
+    if (role === "none" || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    let alive = true;
+    const request = () => {
+      if (document.visibilityState !== "visible") return;
+      navigator.wakeLock
+        .request("screen")
+        .then((l) => {
+          if (alive) lock = l;
+          else void l.release();
+        })
+        .catch(() => {
+          /* pil tasarrufu modu vb. izin vermeyebilir */
+        });
+    };
+    request();
+    document.addEventListener("visibilitychange", request);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", request);
+      void lock?.release();
+    };
+  }, [role]);
 
   useEffect(() => {
     if (!shareUrl) return;
@@ -380,11 +407,15 @@ export default function Game() {
           {error && <p className="mt-3 text-center text-sm font-semibold text-rose-300">{error}</p>}
           <HowTo />
           <AboutBoldPilot />
+          <p className="mt-4 text-center text-[11px] leading-snug text-white/40">
+            İsim ya da kişisel veri toplanmaz; yalnızca anonim kullanım istatistiği tutulur (ziyaret, yarış sayısı,
+            cihaz türü).
+          </p>
           <a
             href="https://www.linkedin.com/in/mert-toker"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 block text-center text-xs font-semibold text-white/45 transition-colors hover:text-amber-300"
+            className="mt-2 block text-center text-xs font-semibold text-white/45 transition-colors hover:text-amber-300"
           >
             crafted by Toker
           </a>
@@ -403,15 +434,25 @@ export default function Game() {
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-white/60">Oda kodu</p>
                 <p className="font-mono text-5xl font-black tracking-[0.18em] text-amber-300">{code}</p>
-                {isHost && (
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                      `At yarışına gel! 🏇 Oda kodu: ${code}\n${shareUrl}`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg bg-[#25d366] px-3 py-1.5 text-sm font-black text-[#06301a] transition-transform active:scale-95"
+                  >
+                    WhatsApp&apos;tan davet et
+                  </a>
                   <button
                     type="button"
                     onClick={share}
-                    className="mt-1 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold transition-colors hover:bg-white/20"
+                    className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold transition-colors hover:bg-white/20"
                   >
-                    {copied ? "Bağlantı kopyalandı ✓" : "Davet bağlantısını paylaş"}
+                    {copied ? "Kopyalandı ✓" : "Linki paylaş"}
                   </button>
-                )}
+                </div>
               </div>
             </div>
           ) : (
@@ -530,9 +571,25 @@ function Results({
     const t = setTimeout(() => setVisible(true), (CELEBRATION_SECONDS + CONFETTI_FADE_SECONDS) * 1000);
     return () => clearTimeout(t);
   }, []);
+  const [sharing, setSharing] = useState(false);
   if (!visible) return null;
   const list = ranking(snap);
   const winner = list[0];
+
+  async function shareCard() {
+    setSharing(true);
+    try {
+      const blob = await renderResultCard(list, snap.steps, mySlot);
+      const me = list.findIndex((r) => r.slot === mySlot);
+      const text =
+        me === 0
+          ? `At yarışını kazandım! 🏆 Sen de gel: ${window.location.origin}`
+          : `At yarışında ${me + 1}. oldum 🏇 Sen de gel: ${window.location.origin}`;
+      await shareResultCard(blob, text);
+    } finally {
+      setSharing(false);
+    }
+  }
   return (
     <Overlay fadeIn>
       <div className="text-center">
@@ -568,6 +625,14 @@ function Results({
           );
         })}
       </ol>
+      <button
+        type="button"
+        onClick={shareCard}
+        disabled={sharing}
+        className="mt-4 w-full rounded-2xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-amber-400 py-3 font-black text-white shadow-lg transition-transform active:scale-[0.98] disabled:opacity-60"
+      >
+        {sharing ? "Hazırlanıyor…" : "📸 Sonucu paylaş"}
+      </button>
       {isHost ? (
         <div className="mt-5 grid grid-cols-2 gap-2">
           <button

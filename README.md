@@ -54,3 +54,11 @@ Değişkenler tanımlı değilse oyun hiçbir veri göndermez.
    - `SUPABASE_SECRET_KEY`: Supabase'deki **secret / service_role** anahtarı
    - `STATS_PASSWORD`: panel şifresi
 3. Redeploy et ve `https://<site>/istatistik` adresine git.
+
+## Yol haritası (v2 fikirleri)
+
+İlk haftanın verisine göre öncelik verilecek:
+
+- **Altın delik:** Yarış ortasında rastgele bir delik birkaç saniyeliğine parlar; girerse +4.
+- **Seri bonusu:** Üst üste 3 isabette "Seri! 🔥" ve atın kısa bir hızlanması.
+- **Emoji tepkileri:** Yarış sırasında 😂🔥😱 butonları; emoji herkesin pistinde atının üstünde uçar.
