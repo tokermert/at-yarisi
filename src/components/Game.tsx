@@ -334,6 +334,7 @@ export default function Game() {
           {busy && <p className="mt-3 text-center text-sm font-semibold text-amber-200">{busy}</p>}
           {error && <p className="mt-3 text-center text-sm font-semibold text-rose-300">{error}</p>}
           <HowTo />
+          <AboutBoldPilot />
         </Overlay>
       )}
 
@@ -588,6 +589,53 @@ function Title() {
         Herkes kendi telefonundan oynar. Topu yuvarla, deliğe sok, atın koşsun!
       </p>
     </div>
+  );
+}
+
+function AboutBoldPilot() {
+  // Fotoğraf public/bold-pilot.jpg olarak eklenince görünür; yoksa alan gizlenir.
+  const [photo, setPhoto] = useState(true);
+  return (
+    <details className="mt-2 rounded-xl bg-black/20 p-3 text-sm text-white/80">
+      <summary className="cursor-pointer font-bold text-white">Bold Pilot hakkında</summary>
+      {photo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src="/bold-pilot.jpg"
+          alt="Bold Pilot"
+          onError={() => setPhoto(false)}
+          className="mt-3 aspect-[4/3] w-full rounded-lg object-cover"
+        />
+      )}
+      <p className="mt-3">
+        <b className="text-white">Bold Pilot</b>, Türk at yarışı tarihinin en çok anılan safkan İngiliz atlarından
+        biridir. Sahibi ve yetiştiricisi Özdemir Atman, jokeyi &ldquo;Sihirbaz&rdquo; lakaplı Halis Karataş&apos;tı.
+      </p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        <li>
+          <b className="text-white">1996 Gazi Koşusu:</b> 2400 metre çim pistte koştuğu{" "}
+          <b className="text-amber-300">2.26.22</b>&apos;lik dereceyle Gazi Koşusu&apos;nun rekorunu kırdı. Bu derece
+          uzun yıllar boyunca hiçbir safkan tarafından geçilemedi.
+        </li>
+        <li>
+          <b className="text-white">Üçlü Taç:</b>{" "}Aynı yıl Gazi Koşusu&apos;nun yanında Türkiye&apos;nin 2000 Guineas
+          karşılığı olan koşuyu ve Ankara Koşusu&apos;nu da kazanarak Türkiye&apos;nin yedinci Üçlü Taç sahibi oldu.
+        </li>
+        <li>
+          <b className="text-white">Pistlerde:</b> 1995&apos;te başladığı yarış hayatını 1998&apos;de noktaladı;
+          katıldığı koşuların büyük çoğunluğunu birinci bitirdi.
+        </li>
+        <li>
+          <b className="text-white">Veda:</b> Nisan 2015&apos;te, 22 yaşında İstanbul&apos;da hayatını kaybetti.
+          Hikâyesi Halis Karataş&apos;ın hayatıyla birlikte &ldquo;Bizim İçin Şampiyon&rdquo; filmiyle beyaz perdeye
+          taşındı.
+        </li>
+      </ul>
+      <p className="mt-2">
+        Gazi rekoru, Üçlü Taç&apos;ı ve jokeyiyle kurduğu efsanevi ikili sayesinde Bold Pilot, TJK tarihinde bir
+        dönemin simgesi olarak anılır.
+      </p>
+    </details>
   );
 }
 
