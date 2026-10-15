@@ -118,3 +118,8 @@ export interface Hole {
 export const HOLES: Hole[] = HOLE_ROWS.flatMap((row, i) =>
   row.xs.map((x) => ({ x, y: row.y, points: row.points, row: i })),
 );
+
+/** Kazanan sesi süresi: bu süre boyunca konfeti yağar, sonra sonuç ekranı açılır. */
+export const CELEBRATION_SECONDS = 5;
+/** Konfetinin sönmesi için ek süre. */
+export const CONFETTI_FADE_SECONDS = 0.8;

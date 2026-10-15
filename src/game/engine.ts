@@ -1,5 +1,13 @@
 import { Sfx } from "./audio";
-import { BALL_R, HAND_X, HAND_Y, PLAYER_THEMES, RAMP_H } from "./config";
+import {
+  BALL_R,
+  CELEBRATION_SECONDS,
+  CONFETTI_FADE_SECONDS,
+  HAND_X,
+  HAND_Y,
+  PLAYER_THEMES,
+  RAMP_H,
+} from "./config";
 import {
   drawBall,
   drawHorse,
@@ -87,6 +95,9 @@ export class GameView {
   private horses = new Map<number, Horse>();
   private popups: Popup[] = [];
   private confetti: Confetti[] = [];
+  /** Kutlamanın kalan süresi (sn); bu sırada sürekli konfeti patlar. */
+  private celebrate = 0;
+  private burstTimer = 0;
 
   private ball: Ball = createBall();
   private ballRound = -1;
@@ -153,6 +164,7 @@ export class GameView {
       this.thrown = 0;
       this.popups = [];
       this.confetti = [];
+      this.celebrate = 0;
       for (const h of this.horses.values()) h.shown = 0;
     }
     if (next.phase === "lobby") {
@@ -171,7 +183,8 @@ export class GameView {
     if (next.phase === "finished" && prevPhase === "racing") {
       this.sfx.stopCommentary(0.5);
       this.sfx.winner();
-      this.burstConfetti();
+      this.celebrate = CELEBRATION_SECONDS;
+      this.burstTimer = 0;
     }
     if (next.phase === "lobby" || next.phase === "countdown") this.sfx.stopCommentary(0.3);
     if (prev) {
@@ -362,6 +375,17 @@ export class GameView {
 
     for (const pp of this.popups) pp.t += dt;
     this.popups = this.popups.filter((pp) => pp.t < pp.life);
+    if (this.celebrate > 0) {
+      this.celebrate -= dt;
+      this.burstTimer -= dt;
+      if (this.burstTimer <= 0) {
+        this.burstTimer = 0.4 + Math.random() * 0.25;
+        this.burstConfetti(70);
+      }
+      this.rainConfetti(dt);
+      // Kutlama bitince havadaki konfeti kısa sürede sönsün.
+      if (this.celebrate <= 0) for (const c of this.confetti) c.life = Math.min(c.life, CONFETTI_FADE_SECONDS);
+    }
     for (const c of this.confetti) {
       c.vy += 380 * dt;
       c.vx *= 1 - dt * 0.8;
@@ -408,18 +432,36 @@ export class GameView {
     }
   }
 
-  private burstConfetti() {
-    const colors = ["#ef4444", "#3b82f6", "#facc15", "#22c55e", "#ffffff", "#ec4899"];
-    for (let i = 0; i < 160; i++) {
+  private burstConfetti(count: number) {
+    const ox = this.w * (0.15 + Math.random() * 0.7);
+    const oy = this.h * (0.2 + Math.random() * 0.25);
+    for (let i = 0; i < count; i++) {
       this.confetti.push({
-        x: this.w * (0.2 + Math.random() * 0.6),
-        y: this.h * 0.3,
+        x: ox,
+        y: oy,
         vx: (Math.random() - 0.5) * 900,
         vy: -300 - Math.random() * 600,
         rot: Math.random() * 6,
         vr: (Math.random() - 0.5) * 14,
-        color: colors[i % colors.length],
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
         life: 2.5 + Math.random() * 2,
+      });
+    }
+  }
+
+  /** Ekranın üstünden yağan konfeti. */
+  private rainConfetti(dt: number) {
+    const n = Math.round(dt * 60 + Math.random());
+    for (let i = 0; i < n; i++) {
+      this.confetti.push({
+        x: Math.random() * this.w,
+        y: -10,
+        vx: (Math.random() - 0.5) * 80,
+        vy: 40 + Math.random() * 120,
+        rot: Math.random() * 6,
+        vr: (Math.random() - 0.5) * 10,
+        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+        life: 4,
       });
     }
   }
@@ -786,6 +828,8 @@ export class GameView {
     ctx.restore();
   }
 }
+
+const CONFETTI_COLORS = ["#ef4444", "#3b82f6", "#facc15", "#22c55e", "#ffffff", "#ec4899"];
 
 function fitText(ctx: Ctx, text: string, max: number) {
   if (ctx.measureText(text).width <= max) return text;

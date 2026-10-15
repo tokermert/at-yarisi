@@ -2,7 +2,7 @@
 
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
-import { PLAYER_THEMES, TRACK_LENGTHS } from "@/game/config";
+import { CELEBRATION_SECONDS, CONFETTI_FADE_SECONDS, PLAYER_THEMES, TRACK_LENGTHS } from "@/game/config";
 import { GameView } from "@/game/engine";
 import { hostRoom, joinRoom, normalizeCode, type ClientLink, type HostLink } from "@/game/net";
 import { MAX_SLOTS, RaceHost, ranking, type ClientMsg, type HostMsg, type RaceSnapshot } from "@/game/race";
@@ -470,17 +470,17 @@ function Results({
   onLobby: () => void;
   onLeave: () => void;
 }) {
-  // Kazanan at bitiş çizgisine varsın diye sonuç ekranı biraz gecikmeli açılır.
+  // Kazanan sesi ve konfeti bitince sonuç ekranı yavaşça belirir.
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 1600);
+    const t = setTimeout(() => setVisible(true), (CELEBRATION_SECONDS + CONFETTI_FADE_SECONDS) * 1000);
     return () => clearTimeout(t);
   }, []);
   if (!visible) return null;
   const list = ranking(snap);
   const winner = list[0];
   return (
-    <Overlay>
+    <Overlay fadeIn>
       <div className="text-center">
         <div className="text-5xl">{winner?.slot === mySlot ? "🏆" : "🏁"}</div>
         <h2 className="mt-2 font-serif text-3xl font-black italic" style={{ color: "#fff" }}>
@@ -645,9 +645,11 @@ function PrimaryButton({
   );
 }
 
-function Overlay({ children }: { children: React.ReactNode }) {
+function Overlay({ children, fadeIn }: { children: React.ReactNode; fadeIn?: boolean }) {
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-slate-950/55 backdrop-blur-[3px]">
+    <div
+      className={`absolute inset-0 overflow-y-auto bg-slate-950/55 backdrop-blur-[3px] ${fadeIn ? "animate-[overlay-in_0.6s_ease-out_both]" : ""}`}
+    >
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="w-full max-w-md rounded-3xl border border-white/15 bg-gradient-to-b from-[#14532d]/95 to-[#052e16]/95 p-5 shadow-2xl sm:p-6">
           {children}
