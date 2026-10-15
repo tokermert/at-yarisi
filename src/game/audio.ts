@@ -23,6 +23,7 @@ export class Sfx {
   private clips = new Map<string, Promise<AudioBuffer | null>>();
   private commentary: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private commentaryToken = 0;
+  private primed = false;
   muted = false;
 
   constructor() {
@@ -127,6 +128,15 @@ export class Sfx {
   /** Tarayıcılar sesi bir kullanıcı etkileşiminden sonra açmaya izin verir. */
   unlock() {
     if (!this.ctx) {
+      // iPhone'da sessiz düğmesi açıkken Web Audio susar; "playback" oturumu bunu aşar (Safari 16.4+).
+      const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+      if (session) {
+        try {
+          session.type = "playback";
+        } catch {
+          /* desteklenmiyorsa sorun değil */
+        }
+      }
       const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AC) return;
       this.ctx = new AC();
@@ -140,7 +150,16 @@ export class Sfx {
       void this.loadClip(COMMENTARY_SRC);
       void this.loadClip(WINNER_SRC);
     }
-    if (this.ctx.state === "suspended") void this.ctx.resume();
+    // iOS "interrupted" durumunu da kapsar; dokunuş anında çağrıldığı için izin verilir.
+    if (this.ctx.state !== "running") void this.ctx.resume();
+    // Eski iOS sürümleri ses motorunu ancak bir dokunuş içinde çalınan sesle açar.
+    if (!this.primed) {
+      this.primed = true;
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.ctx.createBuffer(1, 1, 22050);
+      src.connect(this.ctx.destination);
+      src.start(0);
+    }
     if (this.music?.paused !== false) this.playMusic();
   }
 

@@ -52,8 +52,11 @@ export default async function OpenGraphImage() {
 
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 0 0 80px", width: 680 }}>
           <div style={{ fontSize: 30, letterSpacing: 10, color: "#fcd34d" }}>PANAYIRLARIN EFSANESİ</div>
-          <div style={{ fontFamily: "Playfair", fontStyle: "italic", fontWeight: 900, fontSize: 140, lineHeight: 1.05, marginTop: 10, color: "#fde68a" }}>At Yarışı</div>
-          <div style={{ fontSize: 36, marginTop: 22, color: "#f0fdf4" }}>Topu yuvarla, atın koşsun!</div>
+          <div style={{ fontFamily: "Playfair", fontStyle: "italic", fontWeight: 900, fontSize: 120, lineHeight: 1.0, marginTop: 6, color: "#fde68a" }}>At Yarışı</div>
+          <div style={{ fontFamily: "Playfair", fontStyle: "italic", fontWeight: 900, fontSize: 52, marginTop: 14, color: "#ffffff" }}>
+            At koşar, baht coşar!
+          </div>
+          <div style={{ fontSize: 32, marginTop: 14, color: "#d1fae5" }}>Oda kur, arkadaşların katılsın</div>
           <div style={{ display: "flex", gap: 14, marginTop: 34 }}>
             {SILKS.map((c, i) => (
               <div

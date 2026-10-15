@@ -75,6 +75,10 @@ export default function Game() {
       },
     });
     viewRef.current = view;
+    // Mobil tarayıcılar sesi ancak bir dokunuş sırasında açar; ekrandaki her dokunuşta dene.
+    const unlockAudio = () => view.sfx.unlock();
+    document.addEventListener("pointerdown", unlockAudio, true);
+    document.addEventListener("touchend", unlockAudio, true);
     // Lobi arka planında örnek bir pist göster.
     view.setState(demoSnapshot());
     view.setMySlot(null);
@@ -82,6 +86,8 @@ export default function Game() {
     ro.observe(wrap);
     view.resize(wrap.clientWidth, wrap.clientHeight);
     return () => {
+      document.removeEventListener("pointerdown", unlockAudio, true);
+      document.removeEventListener("touchend", unlockAudio, true);
       ro.disconnect();
       view.destroy();
       viewRef.current = null;
@@ -318,7 +324,7 @@ export default function Game() {
     if (!shareUrl) return;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "At Yarışı", text: `At yarışına gel! Oda kodu: ${code}`, url: shareUrl });
+        await navigator.share({ title: "At Yarışı", text: "At koşar, baht coşar! 🏇 Odamı kurdum, gel yarışalım", url: shareUrl });
         return;
       }
       await navigator.clipboard.writeText(shareUrl);
@@ -437,7 +443,7 @@ export default function Game() {
                 <div className="mt-1 flex flex-wrap gap-2">
                   <a
                     href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                      `At yarışına gel! 🏇 Oda kodu: ${code}\n${shareUrl}`,
+                      `At koşar, baht coşar! 🏇 Odamı kurdum, gel yarışalım:\n${shareUrl}`,
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
