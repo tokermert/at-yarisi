@@ -164,11 +164,16 @@ export class GameView {
       const color = next.banner.slot >= 0 ? PLAYER_THEMES[next.banner.slot].silk : "#ffffff";
       this.banner = { text: next.banner.text, color, t: 0 };
     }
-    if (next.phase === "racing" && prevPhase === "countdown") this.sfx.countdown(true);
+    if (next.phase === "racing" && prevPhase !== "racing") {
+      if (prevPhase === "countdown") this.sfx.countdown(true);
+      this.sfx.startCommentary();
+    }
     if (next.phase === "finished" && prevPhase === "racing") {
-      this.sfx.fanfare();
+      this.sfx.stopCommentary(0.5);
+      this.sfx.winner();
       this.burstConfetti();
     }
+    if (next.phase === "lobby" || next.phase === "countdown") this.sfx.stopCommentary(0.3);
     if (prev) {
       for (const s of next.slots) {
         const before = prev.slots[s?.slot ?? -1];

@@ -1,12 +1,27 @@
-/** WebAudio ile sentezlenen küçük oyun sesleri (dosya gerektirmez). */
+/** Oyun sesleri: sentezlenen efektler, arka plan müziği ve yarış anlatımı. */
 /** public/muzik.mp3 varsa arka planda döngüyle çalar; yoksa sessizce atlanır. */
 const MUSIC_SRC = "/muzik.mp3";
 const MUSIC_VOLUME = 0.35;
+const MUSIC_DUCKED = 0.08;
+
+/**
+ * Yarış anlatımı: 0–1,5 sn giriş bir kez çalar, sonra 1,5–58 sn arası yarış bitene
+ * kadar döner. Dosyanın son 1,5 saniyesi girişle harmanlandığı için döngü dikişsizdir.
+ */
+const COMMENTARY_SRC = "/sesler/anlatim.mp3";
+const COMMENTARY_LOOP_START = 1.5;
+const COMMENTARY_LOOP_END = 58;
+const WINNER_SRC = "/sesler/kazanan.mp3";
+const VOICE_VOLUME = 0.9;
 
 export class Sfx {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private music: HTMLAudioElement | null = null;
+  private voice: GainNode | null = null;
+  private clips = new Map<string, Promise<AudioBuffer | null>>();
+  private commentary: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private commentaryToken = 0;
   muted = false;
 
   constructor() {
@@ -15,8 +30,75 @@ export class Sfx {
 
   setMuted(m: boolean) {
     this.muted = m;
+    if (this.voice && this.ctx) this.voice.gain.setValueAtTime(m ? 0 : VOICE_VOLUME, this.ctx.currentTime);
     if (m) this.music?.pause();
     else this.playMusic();
+  }
+
+  private loadClip(src: string): Promise<AudioBuffer | null> {
+    const ctx = this.ctx;
+    if (!ctx) return Promise.resolve(null);
+    let p = this.clips.get(src);
+    if (!p) {
+      p = fetch(src)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+        .then((b) => ctx.decodeAudioData(b))
+        .catch(() => null);
+      this.clips.set(src, p);
+    }
+    return p;
+  }
+
+  private duckMusic(on: boolean) {
+    if (this.music) this.music.volume = on ? MUSIC_DUCKED : MUSIC_VOLUME;
+  }
+
+  /** Yarış başladığında anlatımı başlatır; bitene kadar döngüde çalar. */
+  startCommentary() {
+    this.stopCommentary(0.2);
+    const token = ++this.commentaryToken;
+    void this.loadClip(COMMENTARY_SRC).then((buf) => {
+      const ctx = this.ctx;
+      if (!buf || !ctx || !this.voice || token !== this.commentaryToken) return;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      src.loopStart = COMMENTARY_LOOP_START;
+      src.loopEnd = Math.min(COMMENTARY_LOOP_END, buf.duration);
+      const gain = ctx.createGain();
+      src.connect(gain).connect(this.voice);
+      src.start();
+      this.commentary = { src, gain };
+      this.duckMusic(true);
+    });
+  }
+
+  stopCommentary(fade = 0.6) {
+    this.commentaryToken++;
+    const c = this.commentary;
+    this.commentary = null;
+    if (c && this.ctx) {
+      const t = this.ctx.currentTime;
+      c.gain.gain.setValueAtTime(c.gain.gain.value, t);
+      c.gain.gain.linearRampToValueAtTime(0, t + fade);
+      c.src.stop(t + fade + 0.05);
+    }
+    this.duckMusic(false);
+  }
+
+  /** Kazanan belli olunca çalan ses; dosya yoksa sentez fanfara düşer. */
+  winner() {
+    void this.loadClip(WINNER_SRC).then((buf) => {
+      const ctx = this.ctx;
+      if (!buf || !ctx || !this.voice) {
+        this.fanfare();
+        return;
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(this.voice);
+      src.start();
+    });
   }
 
   private playMusic() {
@@ -32,8 +114,13 @@ export class Sfx {
   }
 
   private onVisibility = () => {
-    if (document.hidden) this.music?.pause();
-    else if (this.ctx) this.playMusic();
+    if (document.hidden) {
+      this.music?.pause();
+      void this.ctx?.suspend();
+    } else if (this.ctx) {
+      void this.ctx.resume();
+      this.playMusic();
+    }
   };
 
   /** Tarayıcılar sesi bir kullanıcı etkileşiminden sonra açmaya izin verir. */
@@ -45,12 +132,19 @@ export class Sfx {
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.5;
       this.master.connect(this.ctx.destination);
+      this.voice = this.ctx.createGain();
+      this.voice.gain.value = this.muted ? 0 : VOICE_VOLUME;
+      this.voice.connect(this.ctx.destination);
+      // Yarış başlayınca beklemesin diye sesleri önceden indir.
+      void this.loadClip(COMMENTARY_SRC);
+      void this.loadClip(WINNER_SRC);
     }
     if (this.ctx.state === "suspended") void this.ctx.resume();
     if (this.music?.paused !== false) this.playMusic();
   }
 
   close() {
+    this.stopCommentary(0);
     document.removeEventListener("visibilitychange", this.onVisibility);
     this.music?.pause();
     this.music = null;
