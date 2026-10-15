@@ -3,6 +3,7 @@
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 import { CELEBRATION_SECONDS, CONFETTI_FADE_SECONDS, PLAYER_THEMES, TRACK_LENGTHS } from "@/game/config";
+import { track } from "@/game/analytics";
 import { GameView } from "@/game/engine";
 import { hostRoom, joinRoom, normalizeCode, type ClientLink, type HostLink } from "@/game/net";
 import { MAX_SLOTS, RaceHost, ranking, type ClientMsg, type HostMsg, type RaceSnapshot } from "@/game/race";
@@ -36,6 +37,8 @@ export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewRef = useRef<GameView | null>(null);
   const sessionRef = useRef<Session>({ role: "none" });
+  const lastPhaseRef = useRef<RaceSnapshot["phase"]>("lobby");
+  const codeRef = useRef<string | null>(null);
 
   const [name, setName] = useState(() => readStored("atyarisi:name"));
   const [joinCode, setJoinCode] = useState(() =>
@@ -91,6 +94,10 @@ export default function Game() {
   }, [muted]);
 
   useEffect(() => {
+    track("visit");
+  }, []);
+
+  useEffect(() => {
     if (!shareUrl) return;
     let alive = true;
     QRCode.toDataURL(shareUrl, { margin: 1, width: 320, color: { dark: "#052e16", light: "#ffffff" } })
@@ -108,6 +115,8 @@ export default function Game() {
 
   function leave(message: string | null = null) {
     endSession();
+    lastPhaseRef.current = "lobby";
+    codeRef.current = null;
     setRole("none");
     setCode("");
     setSnap(null);
@@ -122,6 +131,12 @@ export default function Game() {
   }
 
   function applyState(state: RaceSnapshot) {
+    // Bu cihazdaki oyuncu bir yarışa başladığında say (oda sahibi ve katılanlar).
+    if (state.phase === "countdown" && lastPhaseRef.current !== "countdown") {
+      const s = sessionRef.current;
+      if (s.role !== "none" && s.mySlot !== null) track("race_played", codeRef.current, { role: s.role });
+    }
+    lastPhaseRef.current = state.phase;
     viewRef.current?.setState(state);
     setSnap(state);
   }
@@ -145,11 +160,35 @@ export default function Game() {
     viewRef.current?.sfx.unlock();
 
     let link: HostLink | null = null;
+    let prevPhase: RaceSnapshot["phase"] = "lobby";
+    let raceStart = 0;
     const host = new RaceHost(() => {
       const state = host.snapshot();
+      if (state.phase !== prevPhase) {
+        trackHostPhase(prevPhase, state);
+        prevPhase = state.phase;
+      }
       link?.broadcast({ t: "state", state });
       applyState(state);
     });
+    const trackHostPhase = (prev: RaceSnapshot["phase"], state: RaceSnapshot) => {
+      const racers = state.slots.filter((x) => x !== null);
+      const humans = racers.filter((x) => !x.bot).length;
+      const info = { online: link !== null, humans, bots: racers.length - humans, steps: state.steps, round: state.round };
+      if (state.phase === "countdown") {
+        track("race_started", link?.code ?? null, info);
+      } else if (state.phase === "racing") {
+        raceStart = performance.now();
+      } else if (state.phase === "finished" && prev === "racing") {
+        const winner = ranking(state)[0];
+        track("race_finished", link?.code ?? null, {
+          ...info,
+          duration_s: Math.round((performance.now() - raceStart) / 1000),
+          winner_bot: winner?.bot ?? false,
+          throws: racers.reduce((sum, x) => sum + x.throws, 0),
+        });
+      }
+    };
     const owners = new Map<string, number>();
     const slotOf = (peerId: string) => owners.get(peerId) ?? -1;
 
@@ -180,8 +219,12 @@ export default function Game() {
         onError: (m) => setError(`Bağlantı hatası: ${m}`),
       });
       setCode(link.code);
+      codeRef.current = link.code;
+      track("room_created", link.code, { online: true });
     } catch {
       link = null;
+      codeRef.current = null;
+      track("room_created", null, { online: false });
       setNotice("İnternet odası açılamadı. Bu cihazda botlara karşı oynayabilirsin.");
     }
 
@@ -231,6 +274,8 @@ export default function Game() {
       link.send({ t: "hello", name });
       setRole("client");
       setCode(c);
+      codeRef.current = c;
+      track("room_joined", c);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Odaya bağlanılamadı.");
     }

@@ -30,3 +30,17 @@ npm run dev
 ## Yayınlama
 
 Vercel'de **Add New → Project** ile bu repoyu içe aktarman yeterli; ek ayar gerekmez.
+
+## İstatistikler (Supabase)
+
+Oyun anonim kullanım olaylarını (ziyaret, oda kurma, katılma, yarış başlangıcı/bitişi) Supabase'e yazar.
+İsim ya da kişisel veri gönderilmez; her cihaz rastgele bir kimlikle sayılır.
+
+1. Supabase'de proje aç, **SQL Editor**'de `supabase/schema.sql` dosyasını çalıştır.
+2. **Project Settings → API**'den proje URL'sini ve `anon` / publishable anahtarını al.
+3. Vercel'de **Settings → Environment Variables**'a ekle ve yeniden deploy et:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Rakamlar için SQL Editor'de `supabase/istatistik.sql` içindeki sorguları çalıştır.
+
+Değişkenler tanımlı değilse oyun hiçbir veri göndermez.
