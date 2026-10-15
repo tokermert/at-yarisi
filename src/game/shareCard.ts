@@ -143,10 +143,10 @@ export async function renderResultCard(list: SlotView[], steps: number, mySlot: 
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#fde68a";
   ctx.font = `italic 900 76px ${serif}, Georgia, serif`;
-  ctx.fillText("Sen de yarış!", W / 2, Math.min(footY, H - 170));
+  ctx.fillText("At koşar, baht coşar!", W / 2, Math.min(footY, H - 170));
   ctx.fillStyle = "rgba(255,255,255,0.85)";
   ctx.font = `800 44px ${sans}, system-ui, sans-serif`;
-  ctx.fillText(window.location.host, W / 2, Math.min(footY + 80, H - 90));
+  ctx.fillText(`Sen de yarış: ${window.location.host}`, W / 2, Math.min(footY + 80, H - 90));
 
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Görsel oluşturulamadı"))), "image/png"),
