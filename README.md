@@ -11,8 +11,6 @@ ekranda tüm atlar koşar, altta yalnızca **senin** atış masan görünür.
    masa pürüzlü olduğu için aynı atış hep aynı deliğe gitmez. Bilgisayarda **Boşluk** tuşunu basılı tutup bırak.
 4. Sarı delik +1, mavi +2, kırmızı +3 adım. Bitişe ilk varan kazanır.
 
-Bir cihazı **pist ekranı** (TV / tablet) olarak da açabilirsin; o cihaz atış masası göstermez.
-
 ## Teknik
 
 - Next.js 16 + Tailwind 4, oyun tamamen `<canvas>` üzerinde çizilir (görsel dosya yok).

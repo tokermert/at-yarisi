@@ -129,7 +129,7 @@ export class GameView {
   }
 
   setMuted(m: boolean) {
-    this.sfx.muted = m;
+    this.sfx.setMuted(m);
   }
 
   /** null: yalnızca pist gösterilir (TV / ekran modu). */

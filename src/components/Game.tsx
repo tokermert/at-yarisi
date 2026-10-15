@@ -48,7 +48,7 @@ export default function Game() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(() => readStored("atyarisi:muted") === "1");
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -126,11 +126,18 @@ export default function Game() {
     setSnap(state);
   }
 
+  function toggleMute() {
+    const next = !muted;
+    setMuted(next);
+    store("atyarisi:muted", next ? "1" : "0");
+    if (!next) viewRef.current?.sfx.unlock();
+  }
+
   function rememberName() {
     store("atyarisi:name", name.trim());
   }
 
-  async function createRoom(asScreen: boolean) {
+  async function createRoom() {
     rememberName();
     setError(null);
     setNotice(null);
@@ -178,7 +185,7 @@ export default function Game() {
       setNotice("İnternet odası açılamadı. Bu cihazda botlara karşı oynayabilirsin.");
     }
 
-    const mine = asScreen ? null : host.join(SELF, name);
+    const mine = host.join(SELF, name);
     let last = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
@@ -261,10 +268,7 @@ export default function Game() {
       </div>
 
       {role !== "none" && (phase === "countdown" || phase === "racing") && (
-        <div className="absolute left-2 top-2 flex gap-2">
-          <IconButton label={muted ? "Sesi aç" : "Sesi kapat"} onClick={() => setMuted((m) => !m)}>
-            {muted ? "🔇" : "🔊"}
-          </IconButton>
+        <div className="absolute left-14 top-2 flex gap-2">
           <IconButton
             label="Odadan çık"
             onClick={() => {
@@ -293,7 +297,17 @@ export default function Game() {
             />
           </label>
 
-          <div className="mt-4 rounded-2xl bg-black/20 p-3">
+          <div className="mt-4">
+            <PrimaryButton disabled={!!busy} onClick={createRoom}>
+              Oda kur 🏇
+            </PrimaryButton>
+          </div>
+
+          <div className="my-4 flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-white/40">
+            <span className="h-px flex-1 bg-white/15" /> ya da <span className="h-px flex-1 bg-white/15" />
+          </div>
+
+          <div className="rounded-2xl bg-black/20 p-3">
             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-white/60">Arkadaşının odasına katıl</p>
             <div className="flex gap-2">
               <input
@@ -316,22 +330,6 @@ export default function Game() {
               </button>
             </div>
           </div>
-
-          <div className="my-4 flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-white/40">
-            <span className="h-px flex-1 bg-white/15" /> ya da <span className="h-px flex-1 bg-white/15" />
-          </div>
-
-          <PrimaryButton disabled={!!busy} onClick={() => createRoom(false)}>
-            Oda kur 🏇
-          </PrimaryButton>
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={() => createRoom(true)}
-            className="mt-2 w-full rounded-2xl bg-white/10 py-2.5 text-sm font-bold text-white/85 transition-colors hover:bg-white/15 disabled:opacity-50"
-          >
-            📺 Bu cihaz sadece pist ekranı olsun (TV / tablet)
-          </button>
 
           {busy && <p className="mt-3 text-center text-sm font-semibold text-amber-200">{busy}</p>}
           {error && <p className="mt-3 text-center text-sm font-semibold text-rose-300">{error}</p>}
@@ -447,6 +445,12 @@ export default function Game() {
           onLeave={() => leave()}
         />
       )}
+
+      <div className="absolute left-2 top-2 z-10">
+        <IconButton label={muted ? "Sesi aç" : "Sesi kapat"} onClick={toggleMute}>
+          {muted ? "🔇" : "🔊"}
+        </IconButton>
+      </div>
     </div>
   );
 }

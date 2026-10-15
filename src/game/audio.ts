@@ -1,8 +1,40 @@
 /** WebAudio ile sentezlenen küçük oyun sesleri (dosya gerektirmez). */
+/** public/muzik.mp3 varsa arka planda döngüyle çalar; yoksa sessizce atlanır. */
+const MUSIC_SRC = "/muzik.mp3";
+const MUSIC_VOLUME = 0.35;
+
 export class Sfx {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private music: HTMLAudioElement | null = null;
   muted = false;
+
+  constructor() {
+    document.addEventListener("visibilitychange", this.onVisibility);
+  }
+
+  setMuted(m: boolean) {
+    this.muted = m;
+    if (m) this.music?.pause();
+    else this.playMusic();
+  }
+
+  private playMusic() {
+    if (this.muted || document.hidden) return;
+    if (!this.music) {
+      this.music = new Audio(MUSIC_SRC);
+      this.music.loop = true;
+      this.music.volume = MUSIC_VOLUME;
+    }
+    this.music.play().catch(() => {
+      /* dosya yoksa ya da tarayıcı henüz izin vermediyse sorun değil */
+    });
+  }
+
+  private onVisibility = () => {
+    if (document.hidden) this.music?.pause();
+    else if (this.ctx) this.playMusic();
+  };
 
   /** Tarayıcılar sesi bir kullanıcı etkileşiminden sonra açmaya izin verir. */
   unlock() {
@@ -15,9 +47,13 @@ export class Sfx {
       this.master.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") void this.ctx.resume();
+    if (this.music?.paused !== false) this.playMusic();
   }
 
   close() {
+    document.removeEventListener("visibilitychange", this.onVisibility);
+    this.music?.pause();
+    this.music = null;
     void this.ctx?.close();
     this.ctx = null;
   }
