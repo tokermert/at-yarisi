@@ -124,9 +124,13 @@ async function Panel({ days }: { days: number }) {
             />
             <Tile label="Kurulan oda" value={data.kpi.rooms} note={`${data.kpi.joins} kez odaya katılındı`} />
             <Tile
-              label="Biten yarış"
-              value={data.kpi.races_finished}
-              note={`${data.kpi.races_started} yarış başladı`}
+              label="Başlatılan yarış"
+              value={data.kpi.races_started}
+              note={`${data.kpi.races_finished} tanesi bitti${
+                data.kpi.races_started
+                  ? ` (%${Math.round((100 * data.kpi.races_finished) / data.kpi.races_started)})`
+                  : ""
+              }`}
             />
             <Tile label="Ortalama yarış süresi" value={data.kpi.avg_duration_s} unit="sn" />
             <Tile label="Yarış başına atış (toplam)" value={data.kpi.avg_throws} />
