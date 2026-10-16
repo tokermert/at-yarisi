@@ -1,6 +1,6 @@
 # At Yarışı 🏇
 
-Panayırların klasik at yarışı oyununun tarayıcı versiyonu. Herkes kendi telefonundan oynar:
+Panayırların klasik at yarışı oyununun tarayıcı versiyonu. Arkadaşlarınla online oynanır:
 ekranda tüm atlar koşar, altta yalnızca **senin** atış masan görünür.
 
 ## Nasıl oynanır

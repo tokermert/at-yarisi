@@ -710,7 +710,7 @@ function Title() {
         At Yarışı
       </h1>
       <p className="mx-auto mt-2 max-w-sm text-sm text-white/75">
-        Herkes kendi telefonundan oynar. Topu yuvarla, deliğe sok, atın koşsun!
+        Topu yuvarla, deliğe sok. At koşar, baht coşar!
       </p>
     </div>
   );

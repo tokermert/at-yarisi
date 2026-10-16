@@ -22,7 +22,7 @@ const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   : "http://localhost:3000";
 
-const TITLE = "At Yarışı — Panayırların efsanesi, şimdi telefonunda";
+const TITLE = "At Yarışı — At koşar, baht coşar!";
 const DESCRIPTION =
   "Topu yuvarla, deliğe sok, atın koşsun! Oda kur, arkadaşların kodla katılsın; 4 kişiye kadar online, gerçek yarış anlatımıyla.";
 
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   openGraph: { type: "website", locale: "tr_TR", siteName: "At Yarışı", title: TITLE, description: DESCRIPTION },
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
-  title: "At Yarışı — Panayır klasiği, herkes kendi telefonundan",
+  title: "At Yarışı — Panayırların efsanesi",
   description:
     "Panayırların klasik at yarışı oyunu: topu deliğe yuvarla, atını koştur. Oda kur, arkadaşların kodla katılsın; 4 kişiye kadar aynı anda.",
   applicationName: "At Yarışı",
